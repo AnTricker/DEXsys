@@ -129,65 +129,65 @@ export default function SalesPage() {
 
     if (step === 'confirm') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12 px-4">
+            <div className="min-h-screen bg-[#1a1a1a] py-12 px-4">
                 <div className="max-w-md mx-auto">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">確認銷售資訊</h1>
-                        <p className="mt-2 text-sm text-gray-600">請確認以下資訊無誤</p>
+                        <h1 className="text-3xl font-black uppercase text-[#F4E76E]" style={{ textShadow: '1px 1px 0px #9B7EDE' }}>確認銷售資訊</h1>
+                        <p className="mt-2 text-sm text-gray-400 uppercase tracking-wider">請確認以下資訊無誤</p>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-xl p-8 space-y-6">
+                    <div className="card-dex rounded-2xl p-8 space-y-6">
                         {/* 資訊顯示 */}
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center py-3 border-b">
-                                <span className="text-gray-600">教練</span>
-                                <span className="text-lg font-bold text-gray-900">{selectedTeacher?.name}</span>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                <span className="text-gray-400">教練</span>
+                                <span className="text-lg font-bold text-white">{selectedTeacher?.name}</span>
                             </div>
-                            <div className="flex justify-between items-center py-3 border-b">
-                                <span className="text-gray-600">類型</span>
-                                <span className="text-lg font-bold text-gray-900">
+                            <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                <span className="text-gray-400">類型</span>
+                                <span className="text-lg font-bold text-white">
                                     {saleType === 'package' ? '課卡' : '額外銷售'}
                                 </span>
                             </div>
 
                             {saleType === 'package' ? (
                                 <>
-                                    <div className="flex justify-between items-center py-3 border-b">
-                                        <span className="text-gray-600">方案</span>
-                                        <span className="text-lg font-bold text-gray-900">{selectedPackage?.name}</span>
+                                    <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                        <span className="text-gray-400">方案</span>
+                                        <span className="text-lg font-bold text-white">{selectedPackage?.name}</span>
                                     </div>
-                                    <div className="flex justify-between items-center py-3 border-b">
-                                        <span className="text-gray-600">數量</span>
-                                        <span className="text-2xl font-bold text-green-600">{quantity} 張</span>
+                                    <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                        <span className="text-gray-400">數量</span>
+                                        <span className="text-2xl font-black text-[#7FDBFF]">{quantity} 張</span>
                                     </div>
-                                    <div className="flex justify-between items-center py-3 border-b">
-                                        <span className="text-gray-600">單價</span>
-                                        <span className="text-lg font-bold text-gray-900">${selectedPackage?.price}</span>
+                                    <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                        <span className="text-gray-400">單價</span>
+                                        <span className="text-lg font-bold text-white">${selectedPackage?.price}</span>
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex justify-between items-center py-3 border-b">
-                                    <span className="text-gray-600">備註</span>
-                                    <span className="text-lg font-bold text-gray-900">{note}</span>
+                                <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                    <span className="text-gray-400">備註</span>
+                                    <span className="text-lg font-bold text-white">{note}</span>
                                 </div>
                             )}
 
-                            <div className="flex justify-between items-center py-4 bg-green-50 rounded-lg px-4">
-                                <span className="text-lg font-semibold text-gray-700">總金額</span>
-                                <span className="text-3xl font-bold text-green-600">${totalAmount}</span>
+                            <div className="flex justify-between items-center py-4 bg-[#2a2a2a] rounded-lg px-4">
+                                <span className="text-lg font-semibold text-gray-300">總金額</span>
+                                <span className="text-3xl font-black text-[#F4E76E]">${totalAmount.toLocaleString()}</span>
                             </div>
                         </div>
 
                         {/* 確認勾選 */}
-                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                        <div className="bg-[#2a2a2a] border-2 border-[#F4E76E]/30 rounded-lg p-4">
                             <label className="flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
                                     id="confirm"
-                                    className="w-6 h-6 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                                    className="w-6 h-6 text-[#F4E76E] rounded focus:ring-2 focus:ring-[#F4E76E]"
                                     required
                                 />
-                                <span className="ml-3 text-gray-900 font-medium">
+                                <span className="ml-3 text-white font-medium">
                                     我確認以上資訊正確無誤
                                 </span>
                             </label>
@@ -198,14 +198,14 @@ export default function SalesPage() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                                className="w-full btn-dex py-4 rounded-lg font-bold text-lg uppercase tracking-wider"
                             >
                                 {loading ? '提交中...' : '✓ 確認提交'}
                             </button>
                             <button
                                 onClick={() => setStep('form')}
                                 disabled={loading}
-                                className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                                className="w-full bg-[#2a2a2a] text-gray-300 py-3 rounded-lg font-medium hover:bg-[#333] transition-colors border border-gray-600"
                             >
                                 ← 返回修改
                             </button>
@@ -213,10 +213,7 @@ export default function SalesPage() {
 
                         {/* 訊息 */}
                         {message && (
-                            <div className={`p-4 rounded-lg ${message.includes('✅')
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                                }`}>
+                            <div className="p-4 rounded-lg bg-red-900/50 text-red-300 border border-red-700">
                                 <p className="text-center font-medium">{message}</p>
                             </div>
                         )}
@@ -227,25 +224,25 @@ export default function SalesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12 px-4">
+        <div className="min-h-screen bg-[#1a1a1a] py-12 px-4">
             <div className="max-w-md mx-auto">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">銷售記錄</h1>
-                    <p className="mt-2 text-sm text-gray-600">記錄今日銷售資料</p>
+                    <h1 className="text-3xl font-black uppercase text-[#F4E76E]" style={{ textShadow: '1px 1px 0px #9B7EDE' }}>銷售記錄</h1>
+                    <p className="mt-2 text-sm text-gray-400 uppercase tracking-wider">記錄今日銷售資料</p>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-xl p-8">
+                <div className="card-dex rounded-2xl p-8">
                     <div className="space-y-6">
                         {/* 教練選擇 */}
                         <div>
-                            <label htmlFor="teacher" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="teacher" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                 教練
                             </label>
                             <select
                                 id="teacher"
                                 value={teacherId}
                                 onChange={(e) => setTeacherId(e.target.value)}
-                                className="w-full px-4 py-3 text-lg font-medium text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                className="w-full px-4 py-3 text-lg font-medium text-white bg-[#2a2a2a] border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                 required
                             >
                                 {teachers.map(teacher => (
@@ -258,7 +255,7 @@ export default function SalesPage() {
 
                         {/* 銷售類型選擇 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                 銷售類型
                             </label>
                             <div className="grid grid-cols-2 gap-3">
@@ -266,8 +263,8 @@ export default function SalesPage() {
                                     type="button"
                                     onClick={() => setSaleType('package')}
                                     className={`py-4 rounded-lg font-bold text-lg transition-all ${saleType === 'package'
-                                        ? 'bg-green-600 text-white shadow-lg'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-[#F4E76E] text-[#1a1a1a] shadow-lg shadow-[#F4E76E]/20'
+                                        : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#333] border border-gray-600'
                                         }`}
                                 >
                                     課卡
@@ -276,8 +273,8 @@ export default function SalesPage() {
                                     type="button"
                                     onClick={() => setSaleType('extra')}
                                     className={`py-4 rounded-lg font-bold text-lg transition-all ${saleType === 'extra'
-                                        ? 'bg-green-600 text-white shadow-lg'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-[#F4E76E] text-[#1a1a1a] shadow-lg shadow-[#F4E76E]/20'
+                                        : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#333] border border-gray-600'
                                         }`}
                                 >
                                     額外
@@ -289,14 +286,14 @@ export default function SalesPage() {
                         {saleType === 'package' && (
                             <>
                                 <div>
-                                    <label htmlFor="package" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="package" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                         課卡方案
                                     </label>
                                     <select
                                         id="package"
                                         value={packageId}
                                         onChange={(e) => setPackageId(e.target.value)}
-                                        className="w-full px-4 py-3 text-lg font-medium text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-4 py-3 text-lg font-medium text-white bg-[#2a2a2a] border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                         required
                                     >
                                         {packageOptions.map(pkg => (
@@ -308,7 +305,7 @@ export default function SalesPage() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="quantity" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                         數量
                                     </label>
                                     <input
@@ -318,13 +315,13 @@ export default function SalesPage() {
                                         pattern="[0-9]*"
                                         value={quantity}
                                         onChange={(e) => setQuantity(e.target.value.replace(/[^0-9]/g, ''))}
-                                        className="w-full px-4 py-6 text-4xl font-bold text-center text-gray-900 bg-white border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-4 py-6 text-4xl font-black text-center text-[#7FDBFF] bg-[#2a2a2a] border-2 border-[#7FDBFF]/30 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                         placeholder="0"
                                         required
                                     />
                                     {quantity && selectedPackage && (
-                                        <p className="mt-3 text-center text-lg font-semibold text-green-600">
-                                            總金額: ${selectedPackage.price * parseInt(quantity)}
+                                        <p className="mt-3 text-center text-lg font-bold text-[#F4E76E]">
+                                            總金額: ${(selectedPackage.price * parseInt(quantity)).toLocaleString()}
                                         </p>
                                     )}
                                 </div>
@@ -335,7 +332,7 @@ export default function SalesPage() {
                         {saleType === 'extra' && (
                             <>
                                 <div>
-                                    <label htmlFor="note" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="note" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                         備註
                                     </label>
                                     <input
@@ -343,17 +340,17 @@ export default function SalesPage() {
                                         type="text"
                                         value={note}
                                         onChange={(e) => setNote(e.target.value)}
-                                        className="w-full px-4 py-3 text-lg font-medium text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-4 py-3 text-lg font-medium text-white bg-[#2a2a2a] border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                         placeholder="輸入商品或服務名稱"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="extraAmount" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="extraAmount" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                         金額
                                     </label>
                                     <div className="relative">
-                                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-2xl font-bold">
+                                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#F4E76E] text-2xl font-black">
                                             $
                                         </span>
                                         <input
@@ -363,7 +360,7 @@ export default function SalesPage() {
                                             pattern="[0-9]*"
                                             value={extraAmount}
                                             onChange={(e) => setExtraAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                                            className="w-full pl-12 pr-4 py-6 text-4xl font-bold text-center text-gray-900 bg-white border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            className="w-full pl-12 pr-4 py-6 text-4xl font-black text-center text-[#7FDBFF] bg-[#2a2a2a] border-2 border-[#7FDBFF]/30 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                             placeholder="0"
                                             required
                                         />
@@ -376,17 +373,17 @@ export default function SalesPage() {
                         <button
                             onClick={handleNext}
                             disabled={(saleType === 'package' && (!packageId || !quantity)) || (saleType === 'extra' && (!extraAmount || !note))}
-                            className="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                            className="w-full btn-dex py-4 rounded-lg font-bold text-lg uppercase tracking-wider disabled:opacity-50"
                         >
                             下一步 →
                         </button>
                     </div>
 
                     {/* 導航 */}
-                    <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="mt-6 pt-6 border-t border-gray-700">
                         <button
                             onClick={() => router.push('/')}
-                            className="w-full text-gray-600 hover:text-gray-800 py-2 text-sm"
+                            className="w-full text-gray-500 hover:text-gray-300 py-2 text-sm transition-colors"
                         >
                             返回首頁
                         </button>

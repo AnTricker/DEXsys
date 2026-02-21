@@ -73,7 +73,7 @@ export default function AttendancePage() {
             // 成功後跳轉到成功頁面
             router.push(`/attendance/success?salary=${data.calculatedSalary}`)
         } catch (error) {
-            setMessage('❌ 提交失敗,請稍後再試')
+            setMessage('❌ 提交失敗，請稍後再試')
             setLoading(false)
         }
     }
@@ -83,40 +83,40 @@ export default function AttendancePage() {
 
     if (step === 'confirm') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+            <div className="min-h-screen bg-[#1a1a1a] py-12 px-4">
                 <div className="max-w-md mx-auto">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">確認點名資訊</h1>
-                        <p className="mt-2 text-sm text-gray-600">請確認以下資訊無誤</p>
+                        <h1 className="text-3xl font-black uppercase text-[#F4E76E]" style={{ textShadow: '1px 1px 0px #9B7EDE' }}>確認點名資訊</h1>
+                        <p className="mt-2 text-sm text-gray-400 uppercase tracking-wider">請確認以下資訊無誤</p>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-xl p-8 space-y-6">
+                    <div className="card-dex rounded-2xl p-8 space-y-6">
                         {/* 資訊顯示 */}
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center py-3 border-b">
-                                <span className="text-gray-600">教練</span>
-                                <span className="text-lg font-bold text-gray-900">{selectedTeacher?.name}</span>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                <span className="text-gray-400">教練</span>
+                                <span className="text-lg font-bold text-white">{selectedTeacher?.name}</span>
                             </div>
-                            <div className="flex justify-between items-center py-3 border-b">
-                                <span className="text-gray-600">課程</span>
-                                <span className="text-lg font-bold text-gray-900">{selectedCourse?.name}</span>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                <span className="text-gray-400">課程</span>
+                                <span className="text-lg font-bold text-white">{selectedCourse?.name}</span>
                             </div>
-                            <div className="flex justify-between items-center py-3 border-b">
-                                <span className="text-gray-600">上課人數</span>
-                                <span className="text-2xl font-bold text-blue-600">{studentCount} 人</span>
+                            <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                <span className="text-gray-400">上課人數</span>
+                                <span className="text-2xl font-black text-[#7FDBFF]">{studentCount} 人</span>
                             </div>
                         </div>
 
                         {/* 確認勾選 */}
-                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                        <div className="bg-[#2a2a2a] border-2 border-[#F4E76E]/30 rounded-lg p-4">
                             <label className="flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
                                     id="confirm"
-                                    className="w-6 h-6 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                    className="w-6 h-6 text-[#F4E76E] rounded focus:ring-2 focus:ring-[#F4E76E]"
                                     required
                                 />
-                                <span className="ml-3 text-gray-900 font-medium">
+                                <span className="ml-3 text-white font-medium">
                                     我確認以上資訊正確無誤
                                 </span>
                             </label>
@@ -127,14 +127,14 @@ export default function AttendancePage() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                className="w-full btn-dex py-4 rounded-lg font-bold text-lg uppercase tracking-wider"
                             >
                                 {loading ? '提交中...' : '✓ 確認提交'}
                             </button>
                             <button
                                 onClick={() => setStep('form')}
                                 disabled={loading}
-                                className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                                className="w-full bg-[#2a2a2a] text-gray-300 py-3 rounded-lg font-medium hover:bg-[#333] transition-colors border border-gray-600"
                             >
                                 ← 返回修改
                             </button>
@@ -142,10 +142,7 @@ export default function AttendancePage() {
 
                         {/* 訊息 */}
                         {message && (
-                            <div className={`p-4 rounded-lg ${message.includes('✅')
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                                }`}>
+                            <div className="p-4 rounded-lg bg-red-900/50 text-red-300 border border-red-700">
                                 <p className="text-center font-medium">{message}</p>
                             </div>
                         )}
@@ -157,24 +154,24 @@ export default function AttendancePage() {
 
     return (
         <div className="min-h-screen bg-[#1a1a1a] py-8 px-4">
-            <div className="container mx-auto max-w-2xl">
+            <div className="container mx-auto max-w-md">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">點名記錄</h1>
-                    <p className="mt-2 text-sm text-gray-600">記錄今日上課人數</p>
+                    <h1 className="text-3xl font-black uppercase text-[#F4E76E]" style={{ textShadow: '1px 1px 0px #9B7EDE' }}>點名記錄</h1>
+                    <p className="mt-2 text-sm text-gray-400 uppercase tracking-wider">記錄今日上課人數</p>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-xl p-8">
+                <div className="card-dex rounded-2xl p-8">
                     <div className="space-y-6">
                         {/* 教練選擇 */}
                         <div>
-                            <label htmlFor="teacher" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="teacher" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                 教練
                             </label>
                             <select
                                 id="teacher"
                                 value={teacherId}
                                 onChange={(e) => setTeacherId(e.target.value)}
-                                className="w-full px-4 py-3 text-lg font-medium text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-4 py-3 text-lg font-medium text-white bg-[#2a2a2a] border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                 required
                             >
                                 {teachers.map(teacher => (
@@ -187,14 +184,14 @@ export default function AttendancePage() {
 
                         {/* 課程選擇 */}
                         <div>
-                            <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="course" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                 課程
                             </label>
                             <select
                                 id="course"
                                 value={courseId}
                                 onChange={(e) => setCourseId(e.target.value)}
-                                className="w-full px-4 py-3 text-lg font-medium text-gray-900 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-4 py-3 text-lg font-medium text-white bg-[#2a2a2a] border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                 required
                             >
                                 {courses.map(course => (
@@ -207,7 +204,7 @@ export default function AttendancePage() {
 
                         {/* 上課人數 */}
                         <div>
-                            <label htmlFor="studentCount" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="studentCount" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                                 上課人數
                             </label>
                             <input
@@ -217,7 +214,7 @@ export default function AttendancePage() {
                                 pattern="[0-9]*"
                                 value={studentCount}
                                 onChange={(e) => setStudentCount(e.target.value.replace(/[^0-9]/g, ''))}
-                                className="w-full px-4 py-6 text-4xl font-bold text-center text-gray-900 bg-white border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-4 py-6 text-4xl font-black text-center text-[#7FDBFF] bg-[#2a2a2a] border-2 border-[#7FDBFF]/30 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF]"
                                 placeholder="0"
                                 required
                             />
@@ -227,32 +224,21 @@ export default function AttendancePage() {
                         <button
                             onClick={handleNext}
                             disabled={!studentCount}
-                            className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            className="w-full btn-dex py-4 rounded-lg font-bold text-lg uppercase tracking-wider disabled:opacity-50"
                         >
                             下一步 →
                         </button>
                     </div>
 
                     {/* 導航 */}
-                    <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="mt-6 pt-6 border-t border-gray-700">
                         <button
                             onClick={() => router.push('/')}
-                            className="w-full text-gray-600 hover:text-gray-800 py-2 text-sm"
+                            className="w-full text-gray-500 hover:text-gray-300 py-2 text-sm transition-colors"
                         >
                             返回首頁
                         </button>
                     </div>
-                </div>
-
-                {/* 薪資規則 */}
-                <div className="mt-6 bg-white rounded-lg shadow p-4">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">薪資計算規則</h3>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                        <li>• 1-5 人: $500</li>
-                        <li>• 6-10 人: $800</li>
-                        <li>• 11-15 人: $1,200</li>
-                        <li>• 16 人以上: $1,500</li>
-                    </ul>
                 </div>
             </div>
         </div>
