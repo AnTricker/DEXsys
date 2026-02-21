@@ -19,7 +19,7 @@ export default function Home() {
                         教練管理系統
                     </p>
                     <p className="text-lg text-gray-400 mt-4 uppercase tracking-wide">
-                        Dance • Express • Excel
+                        dance extreme 2025
                     </p>
                 </div>
 
@@ -77,7 +77,7 @@ export default function Home() {
                 <div className="mt-20 text-center">
                     <div className="inline-block px-8 py-3 border-2 border-[#9B7EDE] rounded-full">
                         <p className="text-[#9B7EDE] font-bold uppercase tracking-widest text-sm">
-                            Powered by Street Culture
+                            powered by An
                         </p>
                     </div>
                 </div>
