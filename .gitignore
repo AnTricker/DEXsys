@@ -1,0 +1,67 @@
+# ==================== 依賴 ====================
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.Python
+
+# ==================== Next.js ====================
+.next/
+out/
+build/
+dist/
+
+# ==================== 環境變數 / 敏感資訊 ====================
+.env
+.env.local
+.env.*.local
+.env.production
+*.pem
+*.key
+
+# Google Cloud / Service Account 金鑰
+Dexsystem IAM Management.json
+*.credentials.json
+*-service-account*.json
+
+# ==================== 本地開發筆記 (不上傳) ====================
+BACKEND_API_GUIDE.md
+DEPLOYMENT_GUIDE.md
+ENV_SETUP_CHECKLIST.md
+GOOGLE_SHEETS_SETUP.md
+PRIVATE_KEY_FIX.md
+PROGRESS.md
+QUICKSTART.md
+漸進式開發策略_v4.md
+
+# Python 相關 (本地工具用)
+requirements.txt
+environment.yaml
+
+# 測試腳本
+test-*.js
+
+# ==================== IDE ====================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.gemini/
+
+# ==================== OS ====================
+.DS_Store
+Thumbs.db
+
+# ==================== 日誌 ====================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==================== Vercel ====================
+.vercel
+
+# ==================== TypeScript ====================
+*.tsbuildinfo
+next-env.d.ts

@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* DEX 街舞主題配色 */
+  --dex-yellow: #F4E76E;
+  --dex-purple: #9B7EDE;
+  --dex-cyan: #7FDBFF;
+  --dex-dark: #1a1a1a;
+  --dex-darker: #0f0f0f;
+
+  /* 漸層色 */
+  --gradient-primary: linear-gradient(135deg, var(--dex-purple) 0%, var(--dex-cyan) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--dex-yellow) 0%, var(--dex-purple) 100%);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--dex-dark);
+  color: #ffffff;
+}
+
+/* 街舞風格按鈕 */
+.btn-dex {
+  @apply relative overflow-hidden font-bold uppercase tracking-wider;
+  background: var(--dex-yellow);
+  color: var(--dex-dark);
+  border: 3px solid var(--dex-purple);
+  box-shadow: 4px 4px 0px var(--dex-purple);
+  transition: all 0.2s ease;
+}
+
+.btn-dex:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--dex-purple);
+}
+
+.btn-dex:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--dex-purple);
+}
+
+/* 街舞風格卡片 */
+.card-dex {
+  @apply relative overflow-hidden;
+  background: var(--dex-darker);
+  border: 3px solid var(--dex-purple);
+  box-shadow: 6px 6px 0px var(--dex-cyan);
+}
+
+/* 塗鴉風格標題 */
+.title-graffiti {
+  @apply font-black uppercase;
+  color: var(--dex-yellow);
+  text-shadow:
+    3px 3px 0px var(--dex-purple),
+    6px 6px 0px var(--dex-cyan);
+  letter-spacing: 0.1em;
+}
+
+/* 霓虹發光效果 */
+.neon-glow {
+  text-shadow:
+    0 0 10px var(--dex-cyan),
+    0 0 20px var(--dex-cyan),
+    0 0 30px var(--dex-cyan);
+}
+
+/* 動畫 */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--dex-cyan);
+  }
+
+  50% {
+    box-shadow: 0 0 40px var(--dex-cyan), 0 0 60px var(--dex-purple);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* 輸入框樣式 */
+.input-dex {
+  @apply w-full px-4 py-3 rounded-lg;
+  background: var(--dex-darker);
+  border: 2px solid var(--dex-purple);
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.input-dex:focus {
+  outline: none;
+  border-color: var(--dex-cyan);
+  box-shadow: 0 0 20px rgba(127, 219, 255, 0.3);
+}
+
+/* 表格樣式 */
+.table-dex {
+  @apply w-full;
+}
+
+.table-dex thead {
+  background: linear-gradient(135deg, var(--dex-purple) 0%, var(--dex-cyan) 100%);
+}
+
+.table-dex tbody tr {
+  border-bottom: 1px solid rgba(155, 126, 222, 0.3);
+  transition: all 0.2s ease;
+}
+
+.table-dex tbody tr:hover {
+  background: rgba(155, 126, 222, 0.1);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
