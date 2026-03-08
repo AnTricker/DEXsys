@@ -5,6 +5,8 @@ import {
     CreateAttendanceDTO,
     UpdateAttendanceDTO,
 } from '../types'
+import { SheetsSalaryRulesRepository } from './salary-rules'
+import { calculateSalaryByRule } from '../../utils/salary-calc'
 
 /**
  * Google Sheets 點名記錄 Repository 實作
@@ -13,6 +15,7 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
     private sheets = google.sheets('v4')
     private spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!
     private sheetName = 'Attendances'
+    private salaryRulesRepo = new SheetsSalaryRulesRepository(this.spreadsheetId)
 
     /**
      * 取得 Google Sheets 認證
@@ -29,19 +32,19 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
     }
 
     /**
-     * 計算薪資
-     * 規則:
-     * - 1-5人: $500
-     * - 6-10人: $800
-     * - 11-15人: $1200
-     * - 16+人: $1500
+     * 根據日期和人數，從 SalaryRules 表計算薪資
      */
-    private calculateSalary(studentCount: number): number {
-        if (studentCount >= 1 && studentCount <= 5) return 500
-        if (studentCount >= 6 && studentCount <= 10) return 800
-        if (studentCount >= 11 && studentCount <= 15) return 1200
-        if (studentCount >= 16) return 1500
-        return 0
+    private async calculateSalary(date: string, studentCount: number): Promise<number> {
+        const month = date.substring(0, 7)  // 'YYYY-MM'
+        let rules = await this.salaryRulesRepo.findByMonth(month)
+        if (!rules) {
+            // fallback: 找不到該月規則，嘗試取最新規則
+            rules = await this.salaryRulesRepo.getCurrent()
+            if (!rules) {
+                throw new Error(`找不到 ${month} 的薪資規則，請先在管理頁面設定`)
+            }
+        }
+        return calculateSalaryByRule(studentCount, rules)
     }
 
     /**
@@ -59,7 +62,7 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
         const sheets = google.sheets({ version: 'v4', auth })
 
         const id = this.generateId()
-        const salary = this.calculateSalary(data.studentCount)
+        const salary = await this.calculateSalary(data.date, data.studentCount)
         const now = new Date().toISOString()
 
         // 寫入 Google Sheets
@@ -150,15 +153,19 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
         }
 
         const row = rows[rowIndex]
+        const updatedDate = data.date || row[1]
+        const updatedStudentCount = data.studentCount !== undefined ? data.studentCount : parseInt(row[4])
+        const updatedSalary = data.studentCount !== undefined
+            ? await this.calculateSalary(updatedDate, updatedStudentCount)
+            : parseFloat(row[5])
+
         const updatedRow = [
             row[0], // ID
-            data.date || row[1],
+            updatedDate,
             row[2], // CoachID (不可更新)
             data.courseId || row[3],
-            data.studentCount !== undefined ? data.studentCount : row[4],
-            data.studentCount !== undefined
-                ? this.calculateSalary(data.studentCount)
-                : row[5],
+            updatedStudentCount,
+            updatedSalary,
             row[6], // CreatedAt
         ]
 

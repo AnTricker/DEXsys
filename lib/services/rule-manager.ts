@@ -1,5 +1,6 @@
 import { getDAL } from '../dal'
 import type { SalaryRule, UpsertSalaryRuleDTO } from '../dal/types'
+import { computeMonthSalaryWithRule } from './salary-calculator'
 
 /**
  * 規則管理服務
@@ -36,25 +37,50 @@ export async function autoLockPreviousMonthRules(): Promise<void> {
     const dal = getDAL()
     const today = new Date()
 
-    // 取得發薪日設定
     const paymentDayStr = await dal.settings.get('PaymentDay')
     const paymentDay = parseInt(paymentDayStr || '5')
 
-    // 如果今天是發薪日
     if (today.getDate() === paymentDay) {
         const lastMonth = new Date(today)
         lastMonth.setMonth(lastMonth.getMonth() - 1)
-        const lastMonthStr = lastMonth.toISOString().slice(0, 7)
+        const lastMonthStr = lastMonth.toISOString().slice(0, 7) // e.g. 2026-02
 
-        // 鎖定上個月規則
+        // 1. 鎖定上個月 Rule
         try {
             await dal.salaryRules.lock(lastMonthStr)
             console.log(`已鎖定 ${lastMonthStr} 的薪資規則`)
         } catch (error) {
             console.error(`鎖定規則失敗:`, error)
+            return // 鎖定失敗就不繼續
         }
+
+        // 2. 確認上個月是否已封存（避免重複執行）
+        const alreadyArchived = await dal.salaryRecord.hasMonth(lastMonthStr)
+        if (alreadyArchived) {
+            console.log(`${lastMonthStr} 已封存過，跳過`)
+            return
+        }
+
+        // 3. 取得剛鎖定的 rule（確保用鎖定版）
+        const rule = await dal.salaryRules.findByMonth(lastMonthStr)
+        if (!rule) {
+            console.error(`找不到 ${lastMonthStr} 的 Rule，無法封存薪資`)
+            return
+        }
+
+        // 4. 重新計算上個月所有教練薪資（純計算，不寫 MonthlySalary）
+        const lockedAt = new Date()
+        const rawSalaries = await computeMonthSalaryWithRule(lastMonthStr, rule)
+
+        // 5. Append 到 SalaryRecord
+        await dal.salaryRecord.appendBatch(
+            rawSalaries.map(s => ({ ...s, month: lastMonthStr, lockedAt }))
+        )
+
+        console.log(`已封存 ${lastMonthStr} 薪資快照（${rawSalaries.length} 位教練）`)
     }
 }
+
 
 /**
  * 取得或建立當月規則
@@ -77,27 +103,32 @@ export async function getOrCreateCurrentRules(): Promise<SalaryRule> {
             // 複製上個月規則
             rules = await dal.salaryRules.upsert({
                 effectiveMonth: currentMonth,
-                rule1to5: lastRules.rule1to5,
-                rule6to10: lastRules.rule6to10,
-                rule11to15: lastRules.rule11to15,
-                rule16Plus: lastRules.rule16Plus,
-                salesBonus: lastRules.salesBonus,
+                baseRateZero: lastRules.baseRateZero,
+                baseRate1toN: lastRules.baseRate1toN,
+                tierStartAtNplus1: lastRules.tierStartAtNplus1,
+                tierStep: lastRules.tierStep,
+                tierBonus: lastRules.tierBonus,
+                bonus5Card: lastRules.bonus5Card,
+                bonus10Card: lastRules.bonus10Card,
             })
         } else {
             // 使用預設規則
             rules = await dal.salaryRules.upsert({
                 effectiveMonth: currentMonth,
-                rule1to5: 500,
-                rule6to10: 800,
-                rule11to15: 1200,
-                rule16Plus: 1500,
-                salesBonus: 10,
+                baseRateZero: 300,
+                baseRate1toN: 500,
+                tierStartAtNplus1: 5,
+                tierStep: 5,
+                tierBonus: 100,
+                bonus5Card: 100,
+                bonus10Card: 200,
             })
         }
     }
 
     return rules
 }
+
 
 /**
  * 更新規則 (帶權限檢查)

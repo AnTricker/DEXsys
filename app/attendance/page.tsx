@@ -18,6 +18,7 @@ export default function AttendancePage() {
     const [step, setStep] = useState<'form' | 'confirm'>('form')
 
     // 表單資料
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0])
     const [teacherId, setTeacherId] = useState('')
     const [courseId, setCourseId] = useState('')
     const [studentCount, setStudentCount] = useState('')
@@ -59,7 +60,7 @@ export default function AttendancePage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    date: new Date().toISOString().split('T')[0],
+                    date,
                     coachId: teacherId,
                     courseId,
                     studentCount: parseInt(studentCount),
@@ -93,6 +94,10 @@ export default function AttendancePage() {
                     <div className="card-dex rounded-2xl p-8 space-y-6">
                         {/* 資訊顯示 */}
                         <div className="space-y-4">
+                            <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                                <span className="text-gray-400">日期</span>
+                                <span className="text-lg font-bold text-white">{date}</span>
+                            </div>
                             <div className="flex justify-between items-center py-3 border-b border-gray-700">
                                 <span className="text-gray-400">教練</span>
                                 <span className="text-lg font-bold text-white">{selectedTeacher?.name}</span>
@@ -162,6 +167,22 @@ export default function AttendancePage() {
 
                 <div className="card-dex rounded-2xl p-8">
                     <div className="space-y-6">
+                        {/* 日期選擇 */}
+                        <div>
+                            <label htmlFor="date" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
+                                日期
+                            </label>
+                            <input
+                                id="date"
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                className="w-full px-4 py-3 text-lg font-medium text-white bg-[#2a2a2a] border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-[#7FDBFF] focus:border-[#7FDBFF] appearance-none"
+                                style={{ minHeight: '50px', maxHeight: '50px' }}
+                                required
+                            />
+                        </div>
+
                         {/* 教練選擇 */}
                         <div>
                             <label htmlFor="teacher" className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">

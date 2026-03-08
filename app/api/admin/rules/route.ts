@@ -74,17 +74,21 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const {
             effectiveMonth,
-            rule1to5,
-            rule6to10,
-            rule11to15,
-            rule16Plus,
-            salesBonus,
+            baseRateZero,
+            baseRate1toN,
+            tierStartAtNplus1,
+            tierStep,
+            tierBonus,
+            bonus5Card,
+            bonus10Card,
         } = body
 
         // 驗證必要欄位
-        if (!effectiveMonth || rule1to5 === undefined || rule6to10 === undefined ||
-            rule11to15 === undefined || rule16Plus === undefined ||
-            salesBonus === undefined) {
+        if (!effectiveMonth ||
+            baseRateZero === undefined || baseRate1toN === undefined ||
+            tierStartAtNplus1 === undefined || tierStep === undefined ||
+            tierBonus === undefined || bonus5Card === undefined ||
+            bonus10Card === undefined) {
             return NextResponse.json(
                 { error: '缺少必要欄位' },
                 { status: 400 }
@@ -102,11 +106,13 @@ export async function POST(request: NextRequest) {
         // 更新規則 (帶權限檢查)
         const rule = await updateRules({
             effectiveMonth,
-            rule1to5: parseFloat(rule1to5),
-            rule6to10: parseFloat(rule6to10),
-            rule11to15: parseFloat(rule11to15),
-            rule16Plus: parseFloat(rule16Plus),
-            salesBonus: parseFloat(salesBonus),
+            baseRateZero: parseFloat(baseRateZero),
+            baseRate1toN: parseFloat(baseRate1toN),
+            tierStartAtNplus1: parseFloat(tierStartAtNplus1),
+            tierStep: parseFloat(tierStep),
+            tierBonus: parseFloat(tierBonus),
+            bonus5Card: parseFloat(bonus5Card),
+            bonus10Card: parseFloat(bonus10Card),
         })
 
         return NextResponse.json(rule, { status: 201 })

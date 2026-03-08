@@ -5,6 +5,7 @@ import { SheetsSalesRepository } from './sheets/sales'
 import { SheetsCourseRepository } from './sheets/courses'
 import { SheetsMonthlySalaryRepository } from './sheets/monthly-salary'
 import { SheetsSalaryRulesRepository } from './sheets/salary-rules'
+import { SheetsSalaryRecordRepository } from './sheets/salary-record'
 import { SheetsSettingsRepository } from './sheets/settings'
 
 /**
@@ -44,6 +45,7 @@ export function createDAL(): IDataAccessLayer {
             courses: new SheetsCourseRepository(),
             monthlySalary: new SheetsMonthlySalaryRepository(spreadsheetId),
             salaryRules: new SheetsSalaryRulesRepository(spreadsheetId),
+            salaryRecord: new SheetsSalaryRecordRepository(spreadsheetId),
             settings: new SheetsSettingsRepository(spreadsheetId),
         }
     }

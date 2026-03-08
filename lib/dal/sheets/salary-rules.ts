@@ -7,6 +7,20 @@ import type {
 
 /**
  * Google Sheets 薪資規則 Repository 實作
+ *
+ * Sheet 欄位對應 (A–L):
+ *   A: ID
+ *   B: EffectiveMonth
+ *   C: BaseRateZero   (0人費率)
+ *   D: BaseRate1to4   (1-4人費率)
+ *   E: TierStartAt    (梯進起始人數)
+ *   F: TierStep       (每幾人升一階)
+ *   G: TierBonus      (每階加多少)
+ *   H: Bonus5Card     (五堂卡每張抽成)
+ *   I: Bonus10Card    (十堂卡每張抽成)
+ *   J: IsLocked
+ *   K: LockedAt
+ *   L: CreatedAt
  */
 export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
     private spreadsheetId: string
@@ -38,7 +52,7 @@ export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: this.spreadsheetId,
-            range: 'SalaryRules!A2:J',
+            range: 'SalaryRules!A2:L',
         })
 
         const rows = response.data.values || []
@@ -62,60 +76,52 @@ export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
         const auth = await this.getAuth()
         const sheets = google.sheets({ version: 'v4', auth })
 
-        // 檢查是否已存在
         const existing = await this.findByMonth(data.effectiveMonth)
 
+        const buildRow = (id: string, isLocked: boolean, lockedAt: string, createdAt: string) => [
+            id,
+            data.effectiveMonth,
+            data.baseRateZero,
+            data.baseRate1toN,
+            data.tierStartAtNplus1,
+            data.tierStep,
+            data.tierBonus,
+            data.bonus5Card,
+            data.bonus10Card,
+            isLocked,
+            lockedAt,
+            createdAt,
+        ]
+
         if (existing) {
-            // 更新現有規則
             const rowIndex = await this.findRowIndex(existing.id)
             if (rowIndex === -1) throw new Error('找不到要更新的規則')
 
             await sheets.spreadsheets.values.update({
                 spreadsheetId: this.spreadsheetId,
-                range: `SalaryRules!A${rowIndex}:J${rowIndex}`,
+                range: `SalaryRules!A${rowIndex}:L${rowIndex}`,
                 valueInputOption: 'USER_ENTERED',
                 requestBody: {
-                    values: [[
+                    values: [buildRow(
                         existing.id,
-                        data.effectiveMonth,
-                        data.rule1to5,
-                        data.rule6to10,
-                        data.rule11to15,
-                        data.rule16Plus,
-                        data.salesBonus,
                         existing.isLocked,
                         existing.lockedAt ? existing.lockedAt.toISOString() : '',
                         existing.createdAt.toISOString(),
-                    ]],
+                    )],
                 },
             })
 
-            return {
-                ...existing,
-                ...data,
-            }
+            return { ...existing, ...data }
         } else {
-            // 新增規則
             const id = 'SR' + Date.now()
             const now = new Date().toISOString()
 
             await sheets.spreadsheets.values.append({
                 spreadsheetId: this.spreadsheetId,
-                range: 'SalaryRules!A:J',
+                range: 'SalaryRules!A:L',
                 valueInputOption: 'USER_ENTERED',
                 requestBody: {
-                    values: [[
-                        id,
-                        data.effectiveMonth,
-                        data.rule1to5,
-                        data.rule6to10,
-                        data.rule11to15,
-                        data.rule16Plus,
-                        data.salesBonus,
-                        false, // isLocked
-                        '', // lockedAt
-                        now, // createdAt
-                    ]],
+                    values: [buildRow(id, false, '', now)],
                 },
             })
 
@@ -130,7 +136,7 @@ export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
     }
 
     /**
-     * 鎖定規則
+     * 鎖定規則（IsLocked=J, LockedAt=K → col J:K → 位置不變）
      */
     async lock(month: string): Promise<void> {
         const auth = await this.getAuth()
@@ -146,7 +152,7 @@ export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
 
         await sheets.spreadsheets.values.update({
             spreadsheetId: this.spreadsheetId,
-            range: `SalaryRules!H${rowIndex}:I${rowIndex}`,
+            range: `SalaryRules!J${rowIndex}:K${rowIndex}`, // J=IsLocked, K=LockedAt
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[true, now]],
@@ -163,7 +169,7 @@ export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: this.spreadsheetId,
-            range: 'SalaryRules!A2:J',
+            range: 'SalaryRules!A2:L',
         })
 
         const rows = response.data.values || []
@@ -175,12 +181,10 @@ export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
      */
     async canEdit(month: string): Promise<boolean> {
         const rule = await this.findByMonth(month)
-        if (!rule) return true // 如果規則不存在,可以建立
+        if (!rule) return true
 
-        // 如果已鎖定,不能編輯
         if (rule.isLocked) return false
 
-        // 只能編輯當月規則
         const currentMonth = new Date().toISOString().slice(0, 7)
         if (month !== currentMonth) return false
 
@@ -189,24 +193,32 @@ export class SheetsSalaryRulesRepository implements ISalaryRulesRepository {
 
     /**
      * 將 Google Sheets 列轉換為 SalaryRule 物件
+     *
+     * A[0]=ID, B[1]=EffectiveMonth,
+     * C[2]=BaseRateZero, D[3]=BaseRate1to4,
+     * E[4]=TierStartAt, F[5]=TierStep, G[6]=TierBonus,
+     * H[7]=Bonus5Card, I[8]=Bonus10Card,
+     * J[9]=IsLocked, K[10]=LockedAt, L[11]=CreatedAt
      */
     private rowToSalaryRule(row: any[]): SalaryRule {
         return {
             id: row[0],
             effectiveMonth: row[1],
-            rule1to5: parseFloat(row[2]) || 0,
-            rule6to10: parseFloat(row[3]) || 0,
-            rule11to15: parseFloat(row[4]) || 0,
-            rule16Plus: parseFloat(row[5]) || 0,
-            salesBonus: parseFloat(row[6]) || 0,
-            isLocked: String(row[7]).toUpperCase() === 'TRUE' || row[7] === true,
-            lockedAt: row[8] ? new Date(row[8]) : null,
-            createdAt: new Date(row[9]),
+            baseRateZero: parseFloat(row[2]) || 300,
+            baseRate1toN: parseFloat(row[3]) || 500,
+            tierStartAtNplus1: parseFloat(row[4]) || 5,
+            tierStep: parseFloat(row[5]) || 5,
+            tierBonus: parseFloat(row[6]) || 100,
+            bonus5Card: parseFloat(row[7]) || 100,
+            bonus10Card: parseFloat(row[8]) || 200,
+            isLocked: String(row[9]).toUpperCase() === 'TRUE' || row[9] === true,
+            lockedAt: row[10] ? new Date(row[10]) : null,
+            createdAt: new Date(row[11]),
         }
     }
 
     /**
-     * 找到指定 ID 的列索引
+     * 找到指定 ID 的列索引（資料從第 2 列開始）
      */
     private async findRowIndex(id: string): Promise<number> {
         const auth = await this.getAuth()

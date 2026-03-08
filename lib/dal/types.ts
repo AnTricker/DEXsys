@@ -306,6 +306,7 @@ export interface IDataAccessLayer {
     courses: ICourseRepository
     monthlySalary: IMonthlySalaryRepository
     salaryRules: ISalaryRulesRepository
+    salaryRecord: ISalaryRecordRepository
     settings: ISettingsRepository
 }
 
@@ -329,18 +330,37 @@ export interface MonthlySalary {
 }
 
 /**
+ * 薪資永久存檔（每月 Rule 鎖定時 append）
+ */
+export interface SalaryRecord {
+    id: string
+    month: string           // YYYY-MM
+    teacherId: string
+    teacherName: string
+    totalClasses: number
+    totalStudents: number
+    attendanceSalary: number
+    salesSalary: number
+    totalSalary: number
+    lockedAt: Date          // Rule 鎖定時間戳
+    createdAt: Date
+}
+
+/**
  * 薪資規則
  */
 export interface SalaryRule {
     id: string
-    effectiveMonth: string // 生效月份: YYYY-MM
-    rule1to5: number // 1-5人薪資
-    rule6to10: number // 6-10人薪資
-    rule11to15: number // 11-15人薪資
-    rule16Plus: number // 16人以上薪資
-    salesBonus: number // 銷售獎金 (每筆固定金額)
-    isLocked: boolean // 是否鎖定
-    lockedAt: Date | null // 鎖定時間
+    effectiveMonth: string   // 生效月份: YYYY-MM
+    baseRateZero: number     // 0人時的費率 (e.g. 300)
+    baseRate1toN: number     // 1-4人費率 (e.g. 500)
+    tierStartAtNplus1: number      // 從第幾人開始梯進 (e.g. 5)
+    tierStep: number         // 每幾人升一階 (e.g. 5)
+    tierBonus: number        // 每階加多少 (e.g. 100)
+    bonus5Card: number       // 五堂卡每張抽成 (e.g. 100)
+    bonus10Card: number      // 十堂卡每張抽成 (e.g. 200)
+    isLocked: boolean
+    lockedAt: Date | null
     createdAt: Date
 }
 
@@ -375,11 +395,13 @@ export interface UpsertMonthlySalaryDTO {
  */
 export interface UpsertSalaryRuleDTO {
     effectiveMonth: string
-    rule1to5: number
-    rule6to10: number
-    rule11to15: number
-    rule16Plus: number
-    salesBonus: number
+    baseRateZero: number
+    baseRate1toN: number
+    tierStartAtNplus1: number
+    tierStep: number
+    tierBonus: number
+    bonus5Card: number
+    bonus10Card: number
 }
 
 /**
@@ -485,4 +507,24 @@ export interface ISettingsRepository {
      * 批次更新設定
      */
     setMany(settings: Record<string, string>): Promise<void>
+}
+
+/**
+ * 薪資永久存檔 Repository 介面（append-only）
+ */
+export interface ISalaryRecordRepository {
+    /**
+     * 指定月份所有記錄（檢查用）
+     */
+    findByMonth(month: string): Promise<SalaryRecord[]>
+
+    /**
+     * 批次 append 一整月的薪資快照
+     */
+    appendBatch(records: Omit<SalaryRecord, 'id' | 'createdAt'>[]): Promise<void>
+
+    /**
+     * 指定月份是否已封存過
+     */
+    hasMonth(month: string): Promise<boolean>
 }

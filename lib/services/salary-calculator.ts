@@ -1,5 +1,6 @@
 import { getDAL } from '../dal'
 import type { SalaryRule, MonthlySalary } from '../dal/types'
+import { calculateSalaryByRule, getSaleBonusAmount } from '../utils/salary-calc'
 
 /**
  * 薪資計算服務
@@ -47,52 +48,39 @@ export async function calculateMonthlySalary(month: string): Promise<MonthlySala
  * @param rules 薪資規則
  * @returns 薪資記錄
  */
-async function calculateTeacherSalary(
+/**
+ * 純計算：給定 teacherId/month/rules，回傳薪資數字，不寫任何 Sheet
+ * 供 rule-manager 鎖定存檔時使用
+ */
+export async function computeTeacherSalaryRaw(
     teacherId: string,
     teacherName: string,
     month: string,
     rules: SalaryRule
-): Promise<MonthlySalary> {
+) {
     const dal = getDAL()
-
-    // 計算月份的開始和結束日期
     const startDate = `${month}-01`
     const endDate = getMonthEndDate(month)
 
-    // 1. 取得該月點名記錄
-    const attendances = await dal.attendances.findByCoachIdAndDateRange(
-        teacherId,
-        startDate,
-        endDate
-    )
+    const attendances = await dal.attendances.findByCoachIdAndDateRange(teacherId, startDate, endDate)
 
-    // 2. 計算點名薪資
     let attendanceSalary = 0
     let totalClasses = 0
     let totalStudents = 0
-
     for (const att of attendances) {
         attendanceSalary += calculateSalaryByRule(att.studentCount, rules)
         totalClasses++
         totalStudents += att.studentCount
     }
 
-    // 3. 取得該月銷售記錄
-    const sales = await dal.sales.findByCoachIdAndDateRange(
-        teacherId,
-        startDate,
-        endDate
-    )
+    const sales = await dal.sales.findByCoachIdAndDateRange(teacherId, startDate, endDate)
 
-    // 4. 計算銷售獎金 (依課卡類型 × 數量)
     let salesSalary = 0
     for (const sale of sales) {
-        salesSalary += getSaleBonusAmount(sale.productName, sale.quantity)
+        salesSalary += getSaleBonusAmount(sale.productName, sale.quantity, rules)
     }
 
-    // 5. 儲存結果
-    return await dal.monthlySalary.upsert({
-        month,
+    return {
         teacherId,
         teacherName,
         totalClasses,
@@ -100,20 +88,35 @@ async function calculateTeacherSalary(
         attendanceSalary,
         salesSalary,
         totalSalary: attendanceSalary + salesSalary,
-    })
+    }
 }
 
 /**
- * 根據人數計算薪資
- * @param studentCount 學員人數
- * @param rules 薪資規則
- * @returns 薪資金額
+ * 針對指定月份 + 指定 rules，計算所有教練薪資（不寫 MonthlySalary）
+ * 用於 Rule 鎖定時的快照計算
  */
-function calculateSalaryByRule(studentCount: number, rules: SalaryRule): number {
-    if (studentCount <= 5) return rules.rule1to5
-    if (studentCount <= 10) return rules.rule6to10
-    if (studentCount <= 15) return rules.rule11to15
-    return rules.rule16Plus
+export async function computeMonthSalaryWithRule(month: string, rules: SalaryRule) {
+    const dal = getDAL()
+    const teachers = await dal.teachers.findAll()
+    return await Promise.all(
+        teachers.map(t => computeTeacherSalaryRaw(t.id, t.name, month, rules))
+    )
+}
+
+async function calculateTeacherSalary(
+    teacherId: string,
+    teacherName: string,
+    month: string,
+    rules: SalaryRule
+): Promise<MonthlySalary> {
+    const dal = getDAL()
+    const raw = await computeTeacherSalaryRaw(teacherId, teacherName, month, rules)
+
+    // 儲存到動態草稿表
+    return await dal.monthlySalary.upsert({
+        month,
+        ...raw,
+    })
 }
 
 /**
@@ -127,34 +130,48 @@ function getMonthEndDate(month: string): string {
     return `${month}-${String(lastDay).padStart(2, '0')}`
 }
 
-/**
- * 根據商品名稱計算銷售獎金
- * 十堂卡: $200 × 數量
- * 五堂卡: $100 × 數量
- * 單堂卡 / 額外銷售: 無獎金
- */
-function getSaleBonusAmount(productName: string, quantity: number): number {
-    if (productName.includes('十堂卡')) return 200 * quantity
-    if (productName.includes('五堂卡')) return 100 * quantity
-    return 0
-}
 
 /**
  * 查詢指定月份的薪資統計
- * @param month 月份 (格式: YYYY-MM)
- * @returns 薪資記錄和統計資訊
+ * 確保所有教練都出現，沒有記錄的補 0
  */
 export async function getMonthlySalarySummary(month: string) {
     const dal = getDAL()
-    const salaries = await dal.monthlySalary.findByMonth(month)
 
-    const summary = {
+    // 同時取存檔薪資 & 所有教練
+    const [storedSalaries, teachers] = await Promise.all([
+        dal.monthlySalary.findByMonth(month),
+        dal.teachers.findAll(),
+    ])
+
+    // 建立 teacherId → salary 的 map
+    const salaryMap = new Map(storedSalaries.map(s => [s.teacherId, s]))
+
+    // 對每個教練：有記錄就用，沒有就補全 0
+    const salaries = teachers.map(teacher => {
+        if (salaryMap.has(teacher.id)) {
+            return salaryMap.get(teacher.id)!
+        }
+        return {
+            id: '',
+            month,
+            teacherId: teacher.id,
+            teacherName: teacher.name,
+            totalClasses: 0,
+            totalStudents: 0,
+            attendanceSalary: 0,
+            salesSalary: 0,
+            totalSalary: 0,
+            createdAt: new Date(),
+            updatedAt: undefined,
+        }
+    })
+
+    return {
         month,
         salaries,
         totalSalary: salaries.reduce((sum, s) => sum + s.totalSalary, 0),
         totalClasses: salaries.reduce((sum, s) => sum + s.totalClasses, 0),
         totalTeachers: salaries.length,
     }
-
-    return summary
 }
