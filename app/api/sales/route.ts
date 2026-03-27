@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
             productName: body.productName,
             quantity: parseInt(body.quantity) || 1,
             unitPrice: parseFloat(body.unitPrice) || 0,
+            commission: parseFloat(body.commission) || 0,
         })
 
         return NextResponse.json(sales, { status: 201 })
@@ -99,6 +100,7 @@ export async function PUT(request: NextRequest) {
             productName: body.productName,
             quantity: body.quantity !== undefined ? parseInt(body.quantity) : undefined,
             unitPrice: body.unitPrice !== undefined ? parseFloat(body.unitPrice) : undefined,
+            commission: body.commission !== undefined ? parseFloat(body.commission) : undefined,
         })
 
         return NextResponse.json(sales)

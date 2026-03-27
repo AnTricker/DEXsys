@@ -5,14 +5,16 @@ import {
     CreateSalesDTO,
     UpdateSalesDTO,
 } from '../types'
+import { SheetsTeacherRepository } from './teachers'
 
 /**
  * Google Sheets 銷售記錄 Repository 實作
- * 欄位順序: ID(A), Date(B), CoachID(C), ProductName(D), Quantity(E), UnitPrice(F), CreatedAt(G)
+ * 欄位順序: ID(A), Date(B), CoachID(C), 教練名稱(D), ProductName(E), Quantity(F), UnitPrice(G), Total(H), Commission(I), CreatedAt(J)
  */
 export class SheetsSalesRepository implements ISalesRepository {
     private spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!
     private sheetName = 'Sales'
+    private teacherRepo = new SheetsTeacherRepository()
 
     /**
      * 取得 Google Sheets 認證
@@ -45,19 +47,25 @@ export class SheetsSalesRepository implements ISalesRepository {
         const id = this.generateId()
         const now = new Date().toISOString()
 
+        const coach = await this.teacherRepo.findById(data.coachId)
+        const coachName = coach?.name || ''
+
         await sheets.spreadsheets.values.append({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A:G`,
+            range: `${this.sheetName}!A:J`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
                     id,
                     data.date,
                     data.coachId,
+                    coachName,
                     data.productName,
                     data.quantity,
                     data.unitPrice,
-                    now,
+                    '=INDIRECT("F"&ROW()) * INDIRECT("G"&ROW())', // H: Total Formula
+                    data.commission || 0, // I: Commission
+                    now, // J: CreatedAt
                 ]],
             },
         })
@@ -69,6 +77,7 @@ export class SheetsSalesRepository implements ISalesRepository {
             productName: data.productName,
             quantity: data.quantity,
             unitPrice: data.unitPrice,
+            commission: data.commission || 0,
             createdAt: new Date(now),
         }
     }
@@ -120,7 +129,7 @@ export class SheetsSalesRepository implements ISalesRepository {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A2:G`,
+            range: `${this.sheetName}!A2:I`,
         })
 
         const rows = response.data.values || []
@@ -131,19 +140,29 @@ export class SheetsSalesRepository implements ISalesRepository {
         }
 
         const row = rows[rowIndex]
+
+        let coachName = row[3] || ''
+        if (!coachName) {
+            const coach = await this.teacherRepo.findById(row[2])
+            coachName = coach?.name || ''
+        }
+
         const updatedRow = [
             row[0], // ID
             data.date || row[1],
             row[2], // CoachID (不可更新)
-            data.productName || row[3],
-            data.quantity !== undefined ? data.quantity : row[4],
-            data.unitPrice !== undefined ? data.unitPrice : row[5],
-            row[6], // CreatedAt
+            coachName, // CoachName
+            data.productName || row[4],
+            data.quantity !== undefined ? data.quantity : row[5],
+            data.unitPrice !== undefined ? data.unitPrice : row[6],
+            '=INDIRECT("F"&ROW()) * INDIRECT("G"&ROW())', // Total
+            data.commission !== undefined ? data.commission : row[8],
+            row[9] || new Date().toISOString(), // CreatedAt
         ]
 
         await sheets.spreadsheets.values.update({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A${rowIndex + 2}:G${rowIndex + 2}`,
+            range: `${this.sheetName}!A${rowIndex + 2}:J${rowIndex + 2}`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [updatedRow],
@@ -154,10 +173,11 @@ export class SheetsSalesRepository implements ISalesRepository {
             id: updatedRow[0],
             date: updatedRow[1],
             coachId: updatedRow[2],
-            productName: updatedRow[3],
-            quantity: parseFloat(updatedRow[4]) || 0,
-            unitPrice: parseFloat(updatedRow[5]) || 0,
-            createdAt: new Date(updatedRow[6]),
+            productName: updatedRow[4],
+            quantity: parseFloat(updatedRow[5]) || 0,
+            unitPrice: parseFloat(updatedRow[6]) || 0,
+            commission: parseFloat(updatedRow[8]) || 0,
+            createdAt: new Date(updatedRow[9]),
         }
     }
 
@@ -170,7 +190,7 @@ export class SheetsSalesRepository implements ISalesRepository {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A2:G`,
+            range: `${this.sheetName}!A2:J`,
         })
 
         const rows = response.data.values || []
@@ -206,7 +226,7 @@ export class SheetsSalesRepository implements ISalesRepository {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A2:G`,
+            range: `${this.sheetName}!A2:J`,
         })
 
         const rows = response.data.values || []
@@ -215,10 +235,11 @@ export class SheetsSalesRepository implements ISalesRepository {
             id: row[0],
             date: row[1],
             coachId: row[2],
-            productName: row[3],
-            quantity: parseFloat(row[4]) || 0,
-            unitPrice: parseFloat(row[5]) || 0,
-            createdAt: new Date(row[6]),
+            productName: row[4],
+            quantity: parseFloat(row[5]) || 0,
+            unitPrice: parseFloat(row[6]) || 0,
+            commission: parseFloat(row[8]) || 0,
+            createdAt: new Date(row[9]),
         }))
     }
 }

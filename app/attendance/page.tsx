@@ -22,6 +22,7 @@ export default function AttendancePage() {
     const [teacherId, setTeacherId] = useState('')
     const [courseId, setCourseId] = useState('')
     const [studentCount, setStudentCount] = useState('')
+    const [isConfirmed, setIsConfirmed] = useState(false)
 
     // 選項資料
     const [teachers, setTeachers] = useState<Teacher[]>([])
@@ -118,6 +119,8 @@ export default function AttendancePage() {
                                 <input
                                     type="checkbox"
                                     id="confirm"
+                                    checked={isConfirmed}
+                                    onChange={(e) => setIsConfirmed(e.target.checked)}
                                     className="w-6 h-6 text-[#F4E76E] rounded focus:ring-2 focus:ring-[#F4E76E]"
                                     required
                                 />
@@ -131,8 +134,8 @@ export default function AttendancePage() {
                         <div className="space-y-3">
                             <button
                                 onClick={handleSubmit}
-                                disabled={loading}
-                                className="w-full btn-dex py-4 rounded-lg font-bold text-lg uppercase tracking-wider"
+                                disabled={loading || !isConfirmed}
+                                className="w-full btn-dex py-4 rounded-lg font-bold text-lg uppercase tracking-wider disabled:opacity-50"
                             >
                                 {loading ? '提交中...' : '✓ 確認提交'}
                             </button>

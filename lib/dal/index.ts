@@ -3,6 +3,7 @@ import { SheetsAttendanceRepository } from './sheets/attendances'
 import { SheetsTeacherRepository } from './sheets/teachers'
 import { SheetsSalesRepository } from './sheets/sales'
 import { SheetsCourseRepository } from './sheets/courses'
+import { SheetsProductsRepository } from './sheets/products'
 import { SheetsMonthlySalaryRepository } from './sheets/monthly-salary'
 import { SheetsSalaryRulesRepository } from './sheets/salary-rules'
 import { SheetsSalaryRecordRepository } from './sheets/salary-record'
@@ -43,6 +44,7 @@ export function createDAL(): IDataAccessLayer {
             teachers: new SheetsTeacherRepository(),
             sales: new SheetsSalesRepository(),
             courses: new SheetsCourseRepository(),
+            products: new SheetsProductsRepository(),
             monthlySalary: new SheetsMonthlySalaryRepository(spreadsheetId),
             salaryRules: new SheetsSalaryRulesRepository(spreadsheetId),
             salaryRecord: new SheetsSalaryRecordRepository(spreadsheetId),

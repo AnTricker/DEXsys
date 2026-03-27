@@ -6,6 +6,8 @@ import {
     UpdateAttendanceDTO,
 } from '../types'
 import { SheetsSalaryRulesRepository } from './salary-rules'
+import { SheetsTeacherRepository } from './teachers'
+import { SheetsCourseRepository } from './courses'
 import { calculateSalaryByRule } from '../../utils/salary-calc'
 
 /**
@@ -16,6 +18,8 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
     private spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!
     private sheetName = 'Attendances'
     private salaryRulesRepo = new SheetsSalaryRulesRepository(this.spreadsheetId)
+    private teacherRepo = new SheetsTeacherRepository()
+    private courseRepo = new SheetsCourseRepository()
 
     /**
      * 取得 Google Sheets 認證
@@ -65,17 +69,24 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
         const salary = await this.calculateSalary(data.date, data.studentCount)
         const now = new Date().toISOString()
 
+        const coach = await this.teacherRepo.findById(data.coachId)
+        const course = await this.courseRepo.findById(data.courseId)
+        const coachName = coach?.name || ''
+        const courseName = course?.name || ''
+
         // 寫入 Google Sheets
         await sheets.spreadsheets.values.append({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A:G`,
+            range: `${this.sheetName}!A:I`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
                     id,
                     data.date,
                     data.coachId,
+                    coachName,
                     data.courseId,
+                    courseName,
                     data.studentCount,
                     salary,
                     now,
@@ -154,25 +165,43 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
 
         const row = rows[rowIndex]
         const updatedDate = data.date || row[1]
-        const updatedStudentCount = data.studentCount !== undefined ? data.studentCount : parseInt(row[4])
+        const updatedStudentCount = data.studentCount !== undefined ? data.studentCount : parseInt(row[6])
         const updatedSalary = data.studentCount !== undefined
             ? await this.calculateSalary(updatedDate, updatedStudentCount)
-            : parseFloat(row[5])
+            : parseFloat(row[7])
+
+        // 確保新舊資料皆有教練與課程名稱
+        let coachName = row[3] || ''
+        if (!coachName) {
+            const coach = await this.teacherRepo.findById(row[2])
+            coachName = coach?.name || ''
+        }
+
+        let courseName = row[5] || ''
+        if (data.courseId) {
+            const course = await this.courseRepo.findById(data.courseId)
+            courseName = course?.name || ''
+        } else if (!courseName && row[4]) {
+            const course = await this.courseRepo.findById(row[4])
+            courseName = course?.name || ''
+        }
 
         const updatedRow = [
             row[0], // ID
             updatedDate,
             row[2], // CoachID (不可更新)
-            data.courseId || row[3],
+            coachName,
+            data.courseId || row[4],
+            courseName,
             updatedStudentCount,
             updatedSalary,
-            row[6], // CreatedAt
+            row[8] || new Date().toISOString(), // CreatedAt
         ]
 
         // 更新該列 (rowIndex + 2 因為第一列是標題,且索引從 1 開始)
         await sheets.spreadsheets.values.update({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A${rowIndex + 2}:G${rowIndex + 2}`,
+            range: `${this.sheetName}!A${rowIndex + 2}:I${rowIndex + 2}`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [updatedRow],
@@ -183,10 +212,10 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
             id: updatedRow[0],
             date: updatedRow[1],
             coachId: updatedRow[2],
-            courseId: updatedRow[3],
-            studentCount: parseInt(updatedRow[4]),
-            calculatedSalary: parseFloat(updatedRow[5]),
-            createdAt: new Date(updatedRow[6]),
+            courseId: updatedRow[4],
+            studentCount: parseInt(updatedRow[6]),
+            calculatedSalary: parseFloat(updatedRow[7]),
+            createdAt: new Date(updatedRow[8]),
         }
     }
 
@@ -197,10 +226,9 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
         const auth = await this.getAuth()
         const sheets = google.sheets({ version: 'v4', auth })
 
-        // 先取得所有資料找到要刪除的列
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A2:G`,
+            range: `${this.sheetName}!A2:I`,
         })
 
         const rows = response.data.values || []
@@ -237,7 +265,7 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: this.spreadsheetId,
-            range: `${this.sheetName}!A2:G`,
+            range: `${this.sheetName}!A2:I`,
         })
 
         const rows = response.data.values || []
@@ -246,10 +274,10 @@ export class SheetsAttendanceRepository implements IAttendanceRepository {
             id: row[0],
             date: row[1],
             coachId: row[2],
-            courseId: row[3],
-            studentCount: parseInt(row[4]),
-            calculatedSalary: parseFloat(row[5]),
-            createdAt: new Date(row[6]),
+            courseId: row[4],
+            studentCount: parseInt(row[6]),
+            calculatedSalary: parseFloat(row[7]),
+            createdAt: new Date(row[8]),
         }))
     }
 }

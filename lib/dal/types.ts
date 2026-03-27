@@ -36,8 +36,19 @@ export interface Sales {
     productName: string
     quantity: number
     unitPrice: number
+    commission?: number
     createdAt: Date
     updatedAt?: Date
+}
+
+/**
+ * 商品資料（課卡方案等）
+ */
+export interface Product {
+    id: string
+    name: string
+    price: number
+    createdAt: Date
 }
 
 /**
@@ -99,6 +110,7 @@ export interface CreateSalesDTO {
     productName: string
     quantity: number
     unitPrice: number
+    commission?: number
 }
 
 /**
@@ -109,6 +121,7 @@ export interface UpdateSalesDTO {
     productName?: string
     quantity?: number
     unitPrice?: number
+    commission?: number
 }
 
 /**
@@ -285,6 +298,15 @@ export interface ICourseRepository {
     delete(id: string): Promise<void>
 }
 
+// ==================== Products Repository 介面 ====================
+
+/**
+ * 商品 Repository 介面
+ */
+export interface IProductsRepository {
+    findAll(): Promise<Product[]>
+}
+
 // ==================== 統一資料存取層介面 ====================
 
 /**
@@ -304,6 +326,7 @@ export interface IDataAccessLayer {
     teachers: ITeacherRepository
     sales: ISalesRepository
     courses: ICourseRepository
+    products: IProductsRepository
     monthlySalary: IMonthlySalaryRepository
     salaryRules: ISalaryRulesRepository
     salaryRecord: ISalaryRecordRepository
