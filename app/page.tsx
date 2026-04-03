@@ -23,7 +23,7 @@ export default function Home() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                     {/* 點名 */}
                     <Link
                         href="/attendance"
@@ -56,7 +56,22 @@ export default function Home() {
                         </div>
                     </Link>
 
-
+                    {/* 查詢 */}
+                    <Link
+                        href="/search"
+                        className="card-dex rounded-2xl p-8 hover:scale-105 transition-all duration-300 group"
+                        style={{ borderColor: '#9B7EDE', boxShadow: '6px 6px 0px #F4E76E' }}
+                    >
+                        <div className="flex flex-col items-center">
+                            <div className="text-7xl mb-6 group-hover:scale-110 transition-transform">🔍</div>
+                            <h2 className="text-3xl font-black uppercase text-[#9B7EDE] mb-3 group-hover:text-[#F4E76E] transition-colors">
+                                查詢
+                            </h2>
+                            <p className="text-gray-400 text-center uppercase text-sm tracking-wider">
+                                Search Records
+                            </p>
+                        </div>
+                    </Link>
                 </div>
 
                 {/* 底部裝飾 */}
